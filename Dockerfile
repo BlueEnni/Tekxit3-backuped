@@ -101,7 +101,11 @@ fi\n\
 echo -e "\\e[00;32m OK\\e[00m"\n\
 echo -e "\\n\\nSuccessfully saved backup to\\ '>> backup_data_MC.sh  && echo "$MOUNTEDDIR/FULL_BACKUP_\$DATEONLY\"\n\
 exit 0" >> backup_data_MC.sh \
-&& chmod +x backup_data_MC.sh
+&& chmod +x backup_data_MC.sh \
+&& echo '#!/bin/bash\n'>>start.sh \
+&& echo 'java -jar -Xms$MEMORYSIZE -Xmx$MEMORYSIZE $JAVAFLAGS ./${JARFILE} --nojline nogui\n'>>start.sh \
+&& echo 'crond -f'>>start.sh \
+&& chmod +x start.sh
 
 FROM adoptopenjdk/openjdk8:alpine-slim AS runtime
 COPY --from=build /data /data
@@ -128,7 +132,5 @@ EXPOSE 25565/udp
 # Volumes for the external data (Server, World, Config...)
 VOLUME "/data"
 
-CMD crond -f
-
 # Entrypoint with java optimisations
-ENTRYPOINT java -jar -Xms$MEMORYSIZE -Xmx$MEMORYSIZE $JAVAFLAGS ./${JARFILE} --nojline nogui
+ENTRYPOINT /data/start.sh
