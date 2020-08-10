@@ -8,6 +8,8 @@ ARG version=0.981Tekxit3Server
 ARG jarfile=forge-1.12.2-14.23.5.2847-universal.jar
 # Set memory size
 ARG memory_size=4G
+ARG mounteddir=/var/lib/minecrafts
+ENV MOUNTEDDIR=$mounteddir
 ENV URL=$url
 ENV VERSION=$version
 
@@ -106,6 +108,7 @@ RUN apk add --no-cache bash \
 && echo '0 * * * * /data/backup_data_MC.sh' >> /etc/crontab/root
 WORKDIR /data
 
+ARG mounteddir=/var/lib/minecrafts
 ARG version=0.981Tekxit3Server
 ARG jarfile=forge-1.12.2-14.23.5.2847-universal.jar
 ARG memory_size=4G
@@ -114,6 +117,7 @@ ENV JAVAFLAGS=$java_flags
 ENV MEMORYSIZE=$memory_size
 ENV JARFILE=$jarfile
 ENV VERSION=$version
+ENV MOUNTEDDIR=$mounteddir
 
 # Expose minecraft port
 EXPOSE 25565/tcp
