@@ -103,7 +103,7 @@ echo -e "\\n\\nSuccessfully saved backup to\\ '>> backup_data_MC.sh  && echo "$M
 exit 0" >> backup_data_MC.sh \
 && chmod +x backup_data_MC.sh \
 && echo '#!/bin/bash\n'>>entrypoint.sh \
-&& echo 'java -jar -Xms$MEMORYSIZE -Xmx$MEMORYSIZE $JAVAFLAGS ./${JARFILE} --nojline nogui &\n'>>mc-start.sh \
+&& echo 'java -jar -Xms$MEMORYSIZE -Xmx$MEMORYSIZE $JAVAFLAGS ./${JARFILE} --nojline nogui &\n'>>entrypoint.sh \
 && echo 'crond -f\n'>>entrypoint.sh \
 && echo 'fg %1'>>entrypoint.sh \
 && chmod +x entrypoint.sh
