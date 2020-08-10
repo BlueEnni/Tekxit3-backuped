@@ -32,6 +32,8 @@ RUN wget ${URL}${VERSION}.zip \
 && echo 'eula=true'>eula.txt \
 #adding backupscript
 && touch backup_data_MC.sh \
+\
+\
 && echo "#!/bin/bash\n\
 if [ \"\$(id -u)\" != \"0\" ]; then\n\
     echo \"This script must be run as root\" 1>&2\n\
@@ -101,12 +103,61 @@ fi\n\
 echo -e "\\e[00;32m OK\\e[00m"\n\
 echo -e "\\n\\nSuccessfully saved backup to\\ '>> backup_data_MC.sh  && echo "$MOUNTEDDIR/FULL_BACKUP_\$DATEONLY\"\n\
 exit 0" >> backup_data_MC.sh \
+\
+\
 && chmod +x backup_data_MC.sh \
-&& echo '#!/bin/bash\n'>>entrypoint.sh \
-&& echo 'java -jar -Xms$MEMORYSIZE -Xmx$MEMORYSIZE $JAVAFLAGS ./${JARFILE} --nojline nogui &\n'>>entrypoint.sh \
-&& echo 'crond -f\n'>>entrypoint.sh \
-&& echo 'fg %1'>>entrypoint.sh \
+&& touch start-java.sh \
+&& echo '#!/bin/bash\n'>>start-java.sh \
+&& echo 'java -jar -Xms$MEMORYSIZE -Xmx$MEMORYSIZE $JAVAFLAGS ./${JARFILE} --nojline nogui \n'>>start-java.sh \
+&& chmod +x start-java.sh \
+&& touch start-crond.sh \
+&& echo '#!/bin/bash\n'>>start-crond.sh \
+&& echo 'crond -f\n'>>start-crond.sh \
+&& chmod +x start-crond.sh \
+&& touch entrypoint.sh \
+\
+\
+&& echo '\
+#!/bin/bash\n\
+\n\
+# Start the first process\n\
+./start-crond.sh -D\n\
+status=$?\n\
+if [ $status -ne 0 ]; then\n\
+  echo "Failed to start start-crond.sh: $status"\n\
+  exit $status\n\
+fi\n\
+\n\
+# Start the second process\n\
+./start-java.sh -D\n\
+status=$?\n\
+if [ $status -ne 0 ]; then\n\
+  echo "Failed to start start-java.sh: $status"\n\
+  exit $status\n\
+fi\n\
+\n\
+# Naive check runs checks once a minute to see if either of the processes exited.\n\
+# This illustrates part of the heavy lifting you need to do if you want to run\n\
+# more than one service in a container. The container exits with an error\n\
+# if it detects that either of the processes has exited.\n\
+# Otherwise it loops forever, waking up every 60 seconds\n\
+\n\
+while sleep 60; do\n\
+  ps aux |grep crond |grep -q -v grep\n\
+  PROCESS_1_STATUS=$?\n\
+  ps aux |grep java |grep -q -v grep\n\
+  PROCESS_2_STATUS=$?\n\
+  # If the greps above find anything, they exit with 0 status\n\
+  # If they are not both 0, then something is wrong\n\
+  if [ $PROCESS_1_STATUS -ne 0 -o $PROCESS_2_STATUS -ne 0 ]; then\n\
+    echo "One of the processes has already exited."\n\
+    exit 1\n\
+  fi\n\
+done'>> entrypoint.sh \
+\
+\
 && chmod +x entrypoint.sh
+
 
 FROM adoptopenjdk/openjdk8:alpine-slim AS runtime
 COPY --from=build /data /data
