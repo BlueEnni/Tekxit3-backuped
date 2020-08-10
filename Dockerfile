@@ -108,7 +108,7 @@ exit 0" >> backup_data_MC.sh \
 && chmod +x backup_data_MC.sh \
 && touch start-java.sh \
 && echo '#!/bin/bash\n'>>start-java.sh \
-&& echo 'java -jar -Xms$MEMORYSIZE -Xmx$MEMORYSIZE $JAVAFLAGS ./${JARFILE} --nojline nogui \n'>>start-java.sh \
+&& echo 'java -jar -Xms$MEMORYSIZE -Xmx$MEMORYSIZE $JAVAFLAGS ./${JARFILE} --nojline nogui &\n'>>start-java.sh \
 && chmod +x start-java.sh \
 && touch start-crond.sh \
 && echo '#!/bin/bash\n'>>start-crond.sh \
@@ -121,18 +121,18 @@ exit 0" >> backup_data_MC.sh \
 #!/bin/bash\n\
 \n\
 # Start the first process\n\
-./start-crond.sh -D\n\
-status=$?\n\
-if [ $status -ne 0 ]; then\n\
-  echo "Failed to start start-crond.sh: $status"\n\
-  exit $status\n\
-fi\n\
-\n\
-# Start the second process\n\
 ./start-java.sh -D\n\
 status=$?\n\
 if [ $status -ne 0 ]; then\n\
   echo "Failed to start start-java.sh: $status"\n\
+  exit $status\n\
+fi\n\
+\n\
+# Start the second process\n\
+./start-crond.sh -D\n\
+status=$?\n\
+if [ $status -ne 0 ]; then\n\
+  echo "Failed to start start-crond.sh: $status"\n\
   exit $status\n\
 fi\n\
 \n\
@@ -143,9 +143,9 @@ fi\n\
 # Otherwise it loops forever, waking up every 60 seconds\n\
 \n\
 while sleep 60; do\n\
-  ps aux |grep crond |grep -q -v grep\n\
+  ps aux |grep java\ -jar\ -Xms |grep -q -v grep\n\
   PROCESS_1_STATUS=$?\n\
-  ps aux |grep java |grep -q -v grep\n\
+  ps aux |grep crond\ -f |grep -q -v grep\n\
   PROCESS_2_STATUS=$?\n\
   # If the greps above find anything, they exit with 0 status\n\
   # If they are not both 0, then something is wrong\n\
