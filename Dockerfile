@@ -103,17 +103,14 @@ echo -e "\\n\\nSuccessfully saved backup to\\ '>> backup_data_MC.sh  && echo "$M
 exit 0" >> backup_data_MC.sh \
 && chmod +x backup_data_MC.sh \
 && echo '#!/bin/bash\n'>>entrypoint.sh \
-&& echo 'crond -f'>>entrypoint.sh \
-&& chmod +x entrypoint.sh \
-&& touch mc-start.sh \
-&& echo '#!/bin/bash\n'>>mc-start.sh \
-&& echo 'java -jar -Xms$MEMORYSIZE -Xmx$MEMORYSIZE $JAVAFLAGS ./${JARFILE} --nojline nogui\n'>>mc-start.sh \
-&& chmod +x mc-start.sh
+&& echo 'java -jar -Xms$MEMORYSIZE -Xmx$MEMORYSIZE $JAVAFLAGS ./${JARFILE} --nojline nogui &\n'>>mc-start.sh \
+&& echo 'crond -f\n'>>entrypoint.sh \
+&& echo 'fg %1'>>entrypoint.sh \
+&& chmod +x entrypoint.sh
 
 FROM adoptopenjdk/openjdk8:alpine-slim AS runtime
 COPY --from=build /data /data
 RUN apk add --no-cache bash \
-&& echo '/data/mc-start.sh/n' >> /etc/crontabs/root \
 && echo '0 * * * * /data/backup_data_MC.sh' >> /etc/crontabs/root
 
 WORKDIR /data
