@@ -105,7 +105,9 @@ exit 0" >> backup_data_MC.sh
 FROM adoptopenjdk/openjdk8:alpine-slim AS runtime
 COPY --from=build /data /data
 RUN apk add --no-cache bash \
-&& echo '0 * * * * /data/backup_data_MC.sh' >> /etc/crontabs/root
+&& echo '0 * * * * /data/backup_data_MC.sh' >> /etc/crontabs/root \
+&& chmod +x backup_data_MC.sh
+
 WORKDIR /data
 
 ARG mounteddir=/var/lib/minecraft
