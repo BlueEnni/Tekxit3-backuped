@@ -100,13 +100,13 @@ fi\n\
 \n\
 echo -e "\\e[00;32m OK\\e[00m"\n\
 echo -e "\\n\\nSuccessfully saved backup to\\ '>> backup_data_MC.sh  && echo "$MOUNTEDDIR/FULL_BACKUP_\$DATEONLY\"\n\
-exit 0" >> backup_data_MC.sh
+exit 0" >> backup_data_MC.sh \
+&& chmod +x backup_data_MC.sh
 
 FROM adoptopenjdk/openjdk8:alpine-slim AS runtime
 COPY --from=build /data /data
 RUN apk add --no-cache bash \
-&& echo '0 * * * * /data/backup_data_MC.sh' >> /etc/crontabs/root \
-&& chmod +x backup_data_MC.sh
+&& echo '0 * * * * /data/backup_data_MC.sh' >> /etc/crontabs/root
 
 WORKDIR /data
 
