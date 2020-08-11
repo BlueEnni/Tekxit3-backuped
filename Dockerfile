@@ -106,22 +106,13 @@ exit 0" >> backup_data_MC.sh \
 \
 \
 && chmod +x backup_data_MC.sh \
-&& touch start-java.sh \
-&& echo '#!/bin/bash\n'>>start-java.sh \
-&& echo 'java -jar -Xms$MEMORYSIZE -Xmx$MEMORYSIZE $JAVAFLAGS ./${JARFILE} --nojline nogui &\n'>>start-java.sh \
-&& chmod +x start-java.sh \
-&& touch start-crond.sh \
-&& echo '#!/bin/bash\n'>>start-crond.sh \
-&& echo 'crond -f\n'>>start-crond.sh \
-&& chmod +x start-crond.sh \
 && touch entrypoint.sh \
 \
 \
-&& echo '\
-#!/bin/bash\n\
-\n\
+&& echo '#!/bin/bash\n'>> entrypoint.sh \
+&& echo '\n\
 # Start the first process\n\
-./start-java.sh -D\n\
+java -jar -Xms$MEMORYSIZE -Xmx$MEMORYSIZE $JAVAFLAGS ./${JARFILE} --nojline nogui & -D\n\
 status=$?\n\
 if [ $status -ne 0 ]; then\n\
   echo "Failed to start start-java.sh: $status"\n\
@@ -129,14 +120,19 @@ if [ $status -ne 0 ]; then\n\
 fi\n\
 \n\
 # Start the second process\n\
-./start-crond.sh -D\n\
+crond -f -D\n\
 status=$?\n\
 if [ $status -ne 0 ]; then\n\
   echo "Failed to start start-crond.sh: $status"\n\
   exit $status\n\
-fi\n\
-\n\
-# Naive check runs checks once a minute to see if either of the processes exited.\n\
+fi\n'>> entrypoint.sh \
+\
+\
+&& chmod +x entrypoint.sh \
+touch kill-pid.sh \
+\
+\
+echo '# Naive check runs checks once a minute to see if either of the processes exited.\n\
 # This illustrates part of the heavy lifting you need to do if you want to run\n\
 # more than one service in a container. The container exits with an error\n\
 # if it detects that either of the processes has exited.\n\
@@ -144,16 +140,17 @@ fi\n\
 \n\
 while sleep 60;\n\
   do ps aux |grep java\ -jar\ -Xms |grep -q -v grep; process1=$?; ps aux |grep crond\ -f |grep -q -v grep; process2=$?; if [ $process1 != $process2 ]; then javaprocess=$(pidof java); kill $javaprocess; crondprocess=$(pidof crond); kill $crondprocess; exit 1; fi;\n\
-done'>> entrypoint.sh \
+done'>> kill-pid.sh \
 \
 \
-&& chmod +x entrypoint.sh
+&& chmod +x kill-pid.sh
 
 
 FROM adoptopenjdk/openjdk8:alpine-slim AS runtime
 COPY --from=build /data /data
 RUN apk add --no-cache bash \
-&& echo '0 * * * * /data/backup_data_MC.sh' >> /etc/crontabs/root
+&& echo '0 * * * * /data/backup_data_MC.sh' >> /etc/crontabs/root \
+&& echo '* * * * * /data/kill-pid.sh' >> /etc/crontabs/root
 
 WORKDIR /data
 
