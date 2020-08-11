@@ -112,18 +112,18 @@ exit 0" >> backup_data_MC.sh \
 && echo '#!/bin/bash\n'>> entrypoint.sh \
 && echo '\n\
 # Start the first process\n\
-java -jar -Xms$MEMORYSIZE -Xmx$MEMORYSIZE $JAVAFLAGS ./${JARFILE} --nojline nogui & -D\n\
+java -jar -Xms$MEMORYSIZE -Xmx$MEMORYSIZE $JAVAFLAGS ./${JARFILE} --nojline nogui &\n\
 status=$?\n\
 if [ $status -ne 0 ]; then\n\
-  echo "Failed to start start-java.sh: $status"\n\
+  echo "Failed to start java: $status"\n\
   exit $status\n\
 fi\n\
 \n\
 # Start the second process\n\
-crond -f -D\n\
+crond -f\n\
 status=$?\n\
 if [ $status -ne 0 ]; then\n\
-  echo "Failed to start start-crond.sh: $status"\n\
+  echo "Failed to start crond: $status"\n\
   exit $status\n\
 fi\n'>> entrypoint.sh \
 \
