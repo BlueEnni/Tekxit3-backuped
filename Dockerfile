@@ -142,21 +142,8 @@ fi\n\
 # if it detects that either of the processes has exited.\n\
 # Otherwise it loops forever, waking up every 60 seconds\n\
 \n\
-while sleep 60; do\n\
-  ps aux |grep java\ -jar\ -Xms |grep -q -v grep\n\
-  PROCESS_1_STATUS=$?\n\
-  ps aux |grep crond\ -f |grep -q -v grep\n\
-  PROCESS_2_STATUS=$?\n\
-  # If the greps above find anything, they exit with 0 status\n\
-  # If they are not both 0, then something is wrong\n\
-  if [ $PROCESS_1_STATUS -ne 0 -o $PROCESS_2_STATUS -ne 0 ]; then\n\
-    echo "One of the processes has already exited."\n\
-    javaprocess=$(pidof java)\n\
-    kill $javaprocess\n\
-    crondprocess=$(pidof crond)\n\
-    kill $crondprocess \n\
-    exit 1\n\
-  fi\n\
+while sleep 60;\n\
+  do ps aux |grep java\ -jar\ -Xms |grep -q -v grep; process1=$?; ps aux |grep crond\ -f |grep -q -v grep; process2=$?; if [ $process1 != $process2 ]; then javaprocess=$(pidof java); kill $javaprocess; crondprocess=$(pidof crond); kill $crondprocess; exit 1; fi;\n\
 done'>> entrypoint.sh \
 \
 \
