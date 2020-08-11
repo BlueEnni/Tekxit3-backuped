@@ -129,10 +129,10 @@ fi\n'>> entrypoint.sh \
 \
 \
 && chmod +x entrypoint.sh \
-touch kill-pid.sh \
+&& touch kill-pid.sh \
 \
 \
-echo '# Naive check runs checks once a minute to see if either of the processes exited.\n\
+&& echo '# Naive check runs checks once a minute to see if either of the processes exited.\n\
 # This illustrates part of the heavy lifting you need to do if you want to run\n\
 # more than one service in a container. The container exits with an error\n\
 # if it detects that either of the processes has exited.\n\
